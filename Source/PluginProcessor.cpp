@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -161,7 +153,7 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
 //==============================================================================
 bool MultiBandCompressorAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    return false;
 }
 
 juce::AudioProcessorEditor* MultiBandCompressorAudioProcessor::createEditor()
@@ -175,12 +167,19 @@ void MultiBandCompressorAudioProcessor::getStateInformation (juce::MemoryBlock& 
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
 }
 
 void MultiBandCompressorAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if (tree.isValid())
+    {
+        apvts.replaceState(tree);
+    }
 }
 
 //==============================================================================
@@ -188,4 +187,47 @@ void MultiBandCompressorAudioProcessor::setStateInformation (const void* data, i
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new MultiBandCompressorAudioProcessor();
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout MultiBandCompressorAudioProcessor::createParameterLayout()
+{
+    APVTS::ParameterLayout layout;
+
+    using namespace juce;
+
+    layout.add(std::make_unique<AudioParameterFloat>(
+        "Threshold",
+        "Threshold",
+        NormalisableRange<float>(-60, 12, 1, 1),
+        0
+    ));
+
+    layout.add(std::make_unique<AudioParameterFloat>(
+        "Attack",
+        "Attack",
+        NormalisableRange<float>(5, 500, 1, 1),
+        50
+    ));
+
+    layout.add(std::make_unique<AudioParameterFloat>(
+        "Release",
+        "Release",
+        NormalisableRange<float>(5, 500, 1, 1),
+        250
+    ));
+
+    auto choices = std::vector<double>{ 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 10, 15, 20, 50, 100 };
+    juce::StringArray ratio_choices;
+    for (auto choice : choices)
+    {
+        ratio_choices.add(juce::String(choice, 1));
+    }
+    layout.add(std::make_unique<AudioParameterChoice>(
+        "Ratio",
+        "Ratio",
+        ratio_choices,
+        1
+    ));
+
+    return layout;
 }
