@@ -2,6 +2,66 @@
 
 #include <JuceHeader.h>
 
+namespace Params
+{
+    enum Names
+    {
+        low_mid_crossover_freq,
+        mid_high_crossover_freq,
+
+        threshold_low_band,
+        threshold_mid_band,
+        threshold_high_band,
+
+        attack_low_band,
+        attack_mid_band,
+        attack_high_band,
+
+        release_low_band,
+        release_mid_band,
+        release_high_band,
+
+        ratio_low_band,
+        ratio_mid_band,
+        ratio_high_band,
+
+        bypassed_low_band,
+        bypassed_mid_band,
+        bypassed_high_band,
+    };
+
+    inline const std::map<Names, juce::String>& GetParams()
+    {
+        static std::map<Names, juce::String> params =
+        {
+            {low_mid_crossover_freq, "Low-Mid Crossover Freq"},
+            {mid_high_crossover_freq, "Mid-High Crossover Freq"},
+
+            {threshold_low_band, "Threshold Low Band"},
+            {threshold_mid_band, "Threshold Mid Band"},
+            {threshold_high_band, "Threshold High Band"},
+            
+            {attack_low_band, "Attack Low Band"},
+            {attack_mid_band, "Attack Mid Band"},
+            {attack_high_band, "Attack High Band"},
+
+            {release_low_band, "Release Low Band"},
+            {release_mid_band, "Release Mid Band"},
+            {release_high_band, "Release High Band"},
+
+            {ratio_low_band, "Ratio Low Band"},
+            {ratio_mid_band, "Ratio Mid Band"},
+            {ratio_high_band, "Ratio High Band"},
+
+            {bypassed_low_band, "Bypassed Low Band"},
+            {bypassed_mid_band, "Bypassed Mid Band"},
+            {bypassed_high_band, "Bypassed High Band"},
+        };
+
+        return params;
+    }
+}
+
 struct CompressorBand
 {
     juce::AudioParameterFloat* attack{ nullptr };
@@ -85,14 +145,6 @@ public:
     APVTS apvts{ *this, nullptr, "Parameters", createParameterLayout() };
 
 private:
-    //juce::dsp::Compressor<float> compressor;
-    //
-    //juce::AudioParameterFloat* attack{ nullptr };
-    //juce::AudioParameterFloat* release{ nullptr };
-    //juce::AudioParameterFloat* threshold{ nullptr };
-    //juce::AudioParameterChoice* ratio{ nullptr };
-    //juce::AudioParameterBool* bypassed{ nullptr };
-    
     CompressorBand compressor;
 
     //==============================================================================
