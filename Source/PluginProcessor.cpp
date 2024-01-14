@@ -18,13 +18,16 @@ MultiBandCompressorAudioProcessor::MultiBandCompressorAudioProcessor()
     jassert(attack != nullptr);
 
     release = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Release"));
-    jassert(attack != nullptr);
+    jassert(release != nullptr);
 
     threshold = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Threshold"));
-    jassert(attack != nullptr);
+    jassert(threshold != nullptr);
 
     ratio = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("Ratio"));
-    jassert(attack != nullptr);
+    jassert(ratio != nullptr);
+
+    bypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("Bypassed"));
+    jassert(bypassed != nullptr);
 }
 
 MultiBandCompressorAudioProcessor::~MultiBandCompressorAudioProcessor()
@@ -162,6 +165,8 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
     auto block = juce::dsp::AudioBlock<float>(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
 
+    context.isBypassed = bypassed->get();
+
     compressor.process(context);
 }
 
@@ -242,6 +247,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultiBandCompressorAudioProc
         "Ratio",
         ratio_choices,
         0
+    ));
+
+    layout.add(std::make_unique<AudioParameterBool>(
+        "Bypassed",
+        "Bypassed",
+        false
     ));
 
     return layout;
