@@ -150,6 +150,10 @@ private:
     using Filter = juce::dsp::LinkwitzRileyFilter<float>;
     Filter LP, HP;
 
+    Filter AP;
+
+    juce::AudioBuffer<float> apBuffer;
+
     std::array<juce::AudioBuffer<float>, 2> filterBuffers;
 
     juce::AudioParameterFloat* lowCrossover{ nullptr };
