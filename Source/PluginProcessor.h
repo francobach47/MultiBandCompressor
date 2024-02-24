@@ -148,15 +148,16 @@ private:
     CompressorBand compressor;
 
     using Filter = juce::dsp::LinkwitzRileyFilter<float>;
-    Filter LP, HP;
+    //     fc0  fc1
+    Filter LP1, AP2,
+           HP1, LP2,
+                HP2;
 
-    Filter AP;
+    juce::AudioParameterFloat* lowMidCrossover{ nullptr };
+    juce::AudioParameterFloat* midHighCrossover{ nullptr };
 
-    juce::AudioBuffer<float> apBuffer;
+    std::array<juce::AudioBuffer<float>, 3> filterBuffers;
 
-    std::array<juce::AudioBuffer<float>, 2> filterBuffers;
-
-    juce::AudioParameterFloat* lowCrossover{ nullptr };
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MultiBandCompressorAudioProcessor)
 };
