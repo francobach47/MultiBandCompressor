@@ -53,6 +53,10 @@ MultiBandCompressorAudioProcessor::MultiBandCompressorAudioProcessor()
 
     LP2.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     HP2.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+
+    //invAP1.setType(juce::dsp::LinkwitzRileyFilterType::allpass);
+    //invAP2.setType(juce::dsp::LinkwitzRileyFilterType::allpass);
+
 }
 
 MultiBandCompressorAudioProcessor::~MultiBandCompressorAudioProcessor()
@@ -142,6 +146,11 @@ void MultiBandCompressorAudioProcessor::prepareToPlay (double sampleRate, int sa
     LP2.prepare(spec);
     HP2.prepare(spec);
 
+  /*  invAP1.prepare(spec);
+    invAP2.prepare(spec);
+
+    invAPBuffer.setSize(spec.numChannels, samplesPerBlock);*/
+
     for (auto& buffer : filterBuffers)
     {
         buffer.setSize(spec.numChannels, samplesPerBlock);
@@ -203,14 +212,18 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
         fb = buffer;
     }
 
+    //invAPBuffer = buffer;
+
     auto lowMidCutOffFreq = lowMidCrossover->get();
     LP1.setCutoffFrequency(lowMidCutOffFreq);
     HP1.setCutoffFrequency(lowMidCutOffFreq);
+    //invAP1.setCutoffFrequency(lowMidCutOffFreq);
 
     auto midHighCutOffFreq = midHighCrossover->get();
     AP2.setCutoffFrequency(midHighCutOffFreq);
     LP2.setCutoffFrequency(midHighCutOffFreq);
     HP2.setCutoffFrequency(midHighCutOffFreq);
+    //invAP2.setCutoffFrequency(midHighCutOffFreq);
 
     auto fb0Block = juce::dsp::AudioBlock<float>(filterBuffers[0]);
     auto fb1Block = juce::dsp::AudioBlock<float>(filterBuffers[1]);
@@ -229,11 +242,17 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
 
     HP2.process(fb2Ctx);
 
+    //auto invAPBlock = juce::dsp::AudioBlock<float>(invAPBuffer);
+    //auto invAPCtx = juce::dsp::ProcessContextReplacing<float>(invAPBlock);
+
+    //invAP1.process(invAPCtx);
+    //invAP2.process(invAPCtx);
+
     auto numSamples = buffer.getNumSamples();
     auto numChannels = buffer.getNumChannels();
 
-    if (compressor.bypassed->get())
-        return;
+    //if (compressor.bypassed->get())
+    //    return;
 
     buffer.clear();
 
@@ -254,10 +273,10 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
     //{
     //    for (auto ch = 0; ch < numChannels; ch++)
     //    {
-    //        juce::FloatVectorOperations::multiply(apBuffer.getWritePointer(ch), -1.f, numSamples);
+    //        juce::FloatVectorOperations::multiply(invAPBuffer.getWritePointer(ch), -1.f, numSamples);
     //    }
     //    
-    //    addFilterBand(buffer, apBuffer);
+    //    addFilterBand(buffer, invAPBuffer);
     //}
 
 }
