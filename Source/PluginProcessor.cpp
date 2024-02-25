@@ -55,6 +55,14 @@ MultiBandCompressorAudioProcessor::MultiBandCompressorAudioProcessor()
     boolHelper(midBandComp.bypassed,    Names::bypassed_mid_band);
     boolHelper(highBandComp.bypassed,   Names::bypassed_high_band);
 
+    boolHelper(lowBandComp.mute,        Names::mute_low_band);
+    boolHelper(midBandComp.mute,        Names::mute_mid_band);
+    boolHelper(highBandComp.mute,       Names::mute_high_band);
+
+    boolHelper(lowBandComp.solo,        Names::solo_low_band);
+    boolHelper(midBandComp.solo,        Names::solo_mid_band);
+    boolHelper(highBandComp.solo,       Names::solo_high_band);
+
     floatHelper(lowMidCrossover,        Names::low_mid_crossover_freq);
     floatHelper(midHighCrossover,       Names::mid_high_crossover_freq);
 
@@ -274,9 +282,34 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
         }
     };
 
-    addFilterBand(buffer, filterBuffers[0]);
-    addFilterBand(buffer, filterBuffers[1]);
-    addFilterBand(buffer, filterBuffers[2]);
+    auto bandsAreSolo = false;
+    for (auto& comp : compressors)
+    {
+        if (comp.solo->get())
+        {
+            bandsAreSolo = true;
+            break;
+        }
+    }
+
+    //addFilterBand(buffer, filterBuffers[0]);
+    //addFilterBand(buffer, filterBuffers[1]);
+    //addFilterBand(buffer, filterBuffers[2]);
+    if (bandsAreSolo)
+    {
+        for (size_t i = 0; i < compressors.size(); ++i)
+        {
+            auto& comp = compressors[i];
+            if (comp.solo->get())
+            {
+                addFilterBand(buffer, filterBuffers[i]);
+            }
+        }
+    }
+    else
+    {
+
+    }
 }
 
 //==============================================================================
@@ -412,7 +445,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultiBandCompressorAudioProc
         0
     ));
 
-    // BY PASSED
+    // BYPASSED
     layout.add(std::make_unique<AudioParameterBool>(
         params.at(Names::bypassed_low_band),
         params.at(Names::bypassed_low_band),
@@ -426,6 +459,40 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultiBandCompressorAudioProc
     layout.add(std::make_unique<AudioParameterBool>(
         params.at(Names::bypassed_high_band),
         params.at(Names::bypassed_high_band),
+        false
+    ));
+
+    // MUTE
+    layout.add(std::make_unique<AudioParameterBool>(
+        params.at(Names::mute_low_band),
+        params.at(Names::mute_low_band),
+        false
+    ));
+    layout.add(std::make_unique<AudioParameterBool>(
+        params.at(Names::mute_mid_band),
+        params.at(Names::mute_mid_band),
+        false
+    ));
+    layout.add(std::make_unique<AudioParameterBool>(
+        params.at(Names::mute_high_band),
+        params.at(Names::mute_high_band),
+        false
+    ));
+
+    // SOLO
+    layout.add(std::make_unique<AudioParameterBool>(
+        params.at(Names::solo_low_band),
+        params.at(Names::solo_low_band),
+        false
+    ));
+    layout.add(std::make_unique<AudioParameterBool>(
+        params.at(Names::solo_mid_band),
+        params.at(Names::solo_mid_band),
+        false
+    ));
+    layout.add(std::make_unique<AudioParameterBool>(
+        params.at(Names::solo_high_band),
+        params.at(Names::solo_high_band),
         false
     ));
 

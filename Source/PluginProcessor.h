@@ -28,6 +28,14 @@ namespace Params
         bypassed_low_band,
         bypassed_mid_band,
         bypassed_high_band,
+
+        mute_low_band,
+        mute_mid_band,
+        mute_high_band,
+
+        solo_low_band,
+        solo_mid_band,
+        solo_high_band,
     };
 
     inline const std::map<Names, juce::String>& GetParams()
@@ -56,6 +64,14 @@ namespace Params
             {bypassed_low_band, "Bypassed Low Band"},
             {bypassed_mid_band, "Bypassed Mid Band"},
             {bypassed_high_band, "Bypassed High Band"},
+
+            {mute_low_band, "Mute Low Band"},
+            {mute_mid_band, "Mute Mid Band"},
+            {mute_high_band, "Mute High Band"},
+
+            {solo_low_band, "Solo Low Band"},
+            {solo_mid_band, "Solo Mid Band"},
+            {solo_high_band, "Solo High Band"},
         };
 
         return params;
@@ -69,6 +85,8 @@ struct CompressorBand
     juce::AudioParameterFloat* threshold{ nullptr };
     juce::AudioParameterChoice* ratio{ nullptr };
     juce::AudioParameterBool* bypassed{ nullptr };
+    juce::AudioParameterBool* mute{ nullptr };
+    juce::AudioParameterBool* solo{ nullptr };
 
     void prepare(const juce::dsp::ProcessSpec& spec)
     {
