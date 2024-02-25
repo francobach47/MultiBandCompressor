@@ -36,6 +36,9 @@ namespace Params
         solo_low_band,
         solo_mid_band,
         solo_high_band,
+
+        Gain_In,
+        Gain_Out,
     };
 
     inline const std::map<Names, juce::String>& GetParams()
@@ -72,6 +75,9 @@ namespace Params
             {solo_low_band, "Solo Low Band"},
             {solo_mid_band, "Solo Mid Band"},
             {solo_high_band, "Solo High Band"},
+
+            {Gain_In, "Gain In"},
+            {Gain_Out, "Gain_Out"},
         };
 
         return params;
@@ -182,6 +188,17 @@ private:
 
     std::array<juce::AudioBuffer<float>, 3> filterBuffers;
 
+    juce::dsp::Gain<float> inputGain, outputGain;
+    juce::AudioParameterFloat* inputGainParam{ nullptr };
+    juce::AudioParameterFloat* outputGainParam{ nullptr };
+
+    template<typename T, typename U>
+    void applyGain(T& buffer, U& gain)
+    {
+        auto block = juce::dsp::AudioBlock<float>(buffer);
+        auto ctx = juce::dsp::ProcessContextReplacing<float>(block);
+        gain.process(ctx)
+    }
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MultiBandCompressorAudioProcessor)
 };
