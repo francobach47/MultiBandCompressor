@@ -304,11 +304,18 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
             {
                 addFilterBand(buffer, filterBuffers[i]);
             }
-        }
+        }   
     }
     else
     {
-
+        for (size_t i = 0; i < compressors.size(); ++i)
+        {
+            auto& comp = compressors[i];
+            if (!comp.mute->get());
+            {
+                addFilterBand(buffer, filterBuffers[i]);
+            }
+        }
     }
 }
 
