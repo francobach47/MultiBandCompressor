@@ -180,9 +180,6 @@ private:
            HP1, LP2,
                 HP2;
 
- /*   Filter invAP1, invAP2;
-    juce::AudioBuffer<float> invAPBuffer;*/
-
     juce::AudioParameterFloat* lowMidCrossover{ nullptr };
     juce::AudioParameterFloat* midHighCrossover{ nullptr };
 
@@ -199,6 +196,10 @@ private:
         auto ctx = juce::dsp::ProcessContextReplacing<float>(block);
         gain.process(ctx)
     }
+
+    void updateState();
+    
+    void splitBands(const juce::AudioBuffer<float>& inputBuffer);
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MultiBandCompressorAudioProcessor)
 };

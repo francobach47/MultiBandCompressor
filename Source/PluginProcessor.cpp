@@ -219,47 +219,30 @@ bool MultiBandCompressorAudioProcessor::isBusesLayoutSupported (const BusesLayou
 }
 #endif
 
-void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void MultiBandCompressorAudioProcessor::updateState()
 {
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
     for (auto& compressor : compressors)
         compressor.updateCompressorSettings();
-    //compressor.process(buffer);
-
-    inputGain.setGainDecibels(inputGainParam->get());
-    outputGain.setGainDecibels(outputGainParam->get());
-
-    applyGain(buffer, inputGain);
-
-    for (auto& fb : filterBuffers)
-    {
-        fb = buffer;
-    }
-
-    //invAPBuffer = buffer;
 
     auto lowMidCutOffFreq = lowMidCrossover->get();
     LP1.setCutoffFrequency(lowMidCutOffFreq);
     HP1.setCutoffFrequency(lowMidCutOffFreq);
-    //invAP1.setCutoffFrequency(lowMidCutOffFreq);
 
     auto midHighCutOffFreq = midHighCrossover->get();
     AP2.setCutoffFrequency(midHighCutOffFreq);
     LP2.setCutoffFrequency(midHighCutOffFreq);
     HP2.setCutoffFrequency(midHighCutOffFreq);
-    //invAP2.setCutoffFrequency(midHighCutOffFreq);
+
+    inputGain.setGainDecibels(inputGainParam->get());
+    outputGain.setGainDecibels(outputGainParam->get());
+}
+
+void MultiBandCompressorAudioProcessor::splitBands(const juce::AudioBuffer<float>& inputBuffer)
+{
+    for (auto& fb : filterBuffers)
+    {
+        fb = inputBuffer;
+    }
 
     auto fb0Block = juce::dsp::AudioBlock<float>(filterBuffers[0]);
     auto fb1Block = juce::dsp::AudioBlock<float>(filterBuffers[1]);
@@ -277,6 +260,28 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
     LP2.process(fb1Ctx);
 
     HP2.process(fb2Ctx);
+}
+
+void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+{
+    juce::ScopedNoDenormals noDenormals;
+    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
+
+    // In case we have more outputs than inputs, this code clears any output
+    // channels that didn't contain input data, (because these aren't
+    // guaranteed to be empty - they may contain garbage).
+    // This is here to avoid people getting screaming feedback
+    // when they first compile a plugin, but obviously you don't need to keep
+    // this code if your algorithm always overwrites all the output channels.
+    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+        buffer.clear (i, 0, buffer.getNumSamples());
+
+    updateState();
+    
+    applyGain(buffer, inputGain);
+    
+    splitBands(buffer);
 
     for (size_t i = 0; i < filterBuffers.size(); i++)
     {
@@ -306,9 +311,6 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
         }
     }
 
-    //addFilterBand(buffer, filterBuffers[0]);
-    //addFilterBand(buffer, filterBuffers[1]);
-    //addFilterBand(buffer, filterBuffers[2]);
     if (bandsAreSolo)
     {
         for (size_t i = 0; i < compressors.size(); ++i)
@@ -383,22 +385,23 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultiBandCompressorAudioProc
     const auto& params = GetParams();
 
     // THRESHOLD
+    auto thresholdRange = NormalisableRange<float>(-60, 12, 1, 1);
     layout.add(std::make_unique<AudioParameterFloat>(
         params.at(Names::threshold_low_band),
         params.at(Names::threshold_low_band),
-        NormalisableRange<float>(-60, 12, 1, 1),
+        thresholdRange,
         0
     ));
     layout.add(std::make_unique<AudioParameterFloat>(
         params.at(Names::threshold_mid_band),
         params.at(Names::threshold_mid_band),
-        NormalisableRange<float>(-60, 12, 1, 1),
+        thresholdRange,
         0
     ));
     layout.add(std::make_unique<AudioParameterFloat>(
         params.at(Names::threshold_high_band),
         params.at(Names::threshold_high_band),
-        NormalisableRange<float>(-60, 12, 1, 1),
+        thresholdRange,
         0
     ));
 
