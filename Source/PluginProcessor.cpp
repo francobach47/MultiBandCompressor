@@ -340,7 +340,7 @@ void MultiBandCompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& 
 //==============================================================================
 bool MultiBandCompressorAudioProcessor::hasEditor() const
 {
-    return false;
+    return true;
 }
 
 juce::AudioProcessorEditor* MultiBandCompressorAudioProcessor::createEditor()

@@ -194,7 +194,7 @@ private:
     {
         auto block = juce::dsp::AudioBlock<float>(buffer);
         auto ctx = juce::dsp::ProcessContextReplacing<float>(block);
-        gain.process(ctx)
+        gain.process(ctx);
     }
 
     void updateState();
